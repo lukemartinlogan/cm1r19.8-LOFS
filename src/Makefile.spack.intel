@@ -5,7 +5,9 @@ HDF5_FC=mpiifort
 OPTS = -O3 -xHost -ip -assume byterecl -fp-model precise -ftz -no-fma -qopenmp
 CPP  = cpp -C -P -traditional -Wno-invalid-pp-token -ffreestanding
 DM = -DMPI
-OUTPUTOPT =  -DCOREX=2 -DCOREY=2
+COREX = $(shell echo $$COREX)
+COREY = $(shell echo $$COREY)
+OUTPUTOPT =  -DCOREX=$(COREX) -DCOREY=$(COREY)
 OUTPUTOPT += -DFFLUSH=flush -DMPIO=H5FD_MPIO_COLLECTIVE_F -DUSE_ZFP_COMPRESSION -DNFILES_PER_WRITE=5000
 H5Z_MAIN = $(shell echo $$H5Z_MAIN)
 ZFP_MAIN = $(shell echo $$ZFP_MAIN)
