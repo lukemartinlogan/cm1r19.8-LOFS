@@ -4,11 +4,14 @@ FC=h5pfc
 HDF5_FC=mpiifort
 OPTS = -O3 -xHost -ip -assume byterecl -fp-model precise -ftz -no-fma -qopenmp
 CPP  = cpp -C -P -traditional -Wno-invalid-pp-token -ffreestanding
-DM = -DMPI 
-OUTPUTOPT =  -DCOREX=2 -DCOREY=7
+DM = -DMPI
+OUTPUTOPT =  -DCOREX=2 -DCOREY=2
 OUTPUTOPT += -DFFLUSH=flush -DMPIO=H5FD_MPIO_COLLECTIVE_F -DUSE_ZFP_COMPRESSION -DNFILES_PER_WRITE=5000
-
-LINKOPTS  = -liomp5 -lh5zzfp -lzfp -lhdf5 -lhdf5_hl 
+H5Z_MAIN = $(shell echo $$H5Z_MAIN)
+ZFP_MAIN = $(shell echo $$ZFP_MAIN)
+H5_MAIN = $(shell echo $$H5_MAIN)
+MODULES=-module ${H5Z_MAIN}/include
+LINKOPTS  = -L$(H5Z_MAIN)/lib -L$(ZFP_MAIN)/lib -L$(H5_MAIN)/lib -liomp5 -lh5zzfp -lzfp -lhdf5 #-lhdf5_hl
 
 SRC   = lofs-newcomm.F lofs-mod.F constants.F input.F adv.F adv_routines.F anelp.F azimavg.F base.F bc.F cm1.F cm1libs.F comm.F testcase_simple_phys.F \
 		diff2.F goddard.F hifrq.F init3d.F init_physics.F init_surface.F init_terrain.F interp_routines.F kessler.F lfoice.F maxmin.F \
@@ -28,7 +31,7 @@ AR      = ar cru
 all : newcomm lofs cm1
 
 cm1:			$(OBJS)
-			$(FC) $(OBJS) $(FFLAGS) $(OUTPUTINC) $(OUTPUTLIB) $(LINKOPTS) -o ../run/cm1.exe
+			$(FC) $(MODULES) $(OBJS) $(FFLAGS) $(OUTPUTINC) $(OUTPUTLIB) $(LINKOPTS) -o ../run/cm1.exe
 			$(AR) onefile.F $(SRC)
 			mv onefile.F ../run
 
@@ -37,7 +40,7 @@ lofs: lofs-mod.o
 
 .F.o:
 			$(CPP) $(DM) $(DP) $(ADV) $(OUTPUTOPT) $*.F > $*.f90
-			$(FC) $(FFLAGS) $(OUTPUTINC) -c $*.f90
+			$(FC) $(FFLAGS) $(MODULES) $(OUTPUTINC) -c $*.f90
 
 %.f90: %.F
 			$(CPP) $(DM) $(OUTPUTOPT) $< > $@
